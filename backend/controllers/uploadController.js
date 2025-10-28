@@ -20,24 +20,24 @@ export const uploadResumeImage = async (req, res) => {
     const newThumbnail = req.files?.thumbnail?.[0];
     const newProfileImage = req.files?.profileImage?.[0];
 
-    // === Thumbnail ===
+    // Thumbnail 
     if (newThumbnail) {
       resume.thumbnail = {
         data: newThumbnail.buffer,
         contentType: newThumbnail.mimetype,
       };
-      // Keep backward compatibility (URL now serves from DB)
+      // backward compatibility
       resume.thumbnailLink = `${baseUrl}/api/resumes/${resumeId}/thumbnail`;
     }
 
-    // === Profile Image ===
+    // Profile Image
     if (newProfileImage) {
       resume.profileInfo = resume.profileInfo || {};
       resume.profileInfo.profileImage = {
         data: newProfileImage.buffer,
         contentType: newProfileImage.mimetype,
       };
-      // Keep backward compatibility (URL now serves from DB)
+      //backward compatibility 
       resume.profileInfo.profilePreviewUrl = `${baseUrl}/api/resumes/${resumeId}/profile-image`;
     }
 
@@ -52,9 +52,8 @@ export const uploadResumeImage = async (req, res) => {
   }
 };
 
-/**
- * Fetch stored thumbnail from MongoDB
- */
+// Fetch stored thumbnail from MongoDB
+
 export const getResumeThumbnail = async (req, res) => {
   try {
     const resume = await Resume.findById(req.params.id);
@@ -69,9 +68,8 @@ export const getResumeThumbnail = async (req, res) => {
   }
 };
 
-/**
- * Fetch stored profile image from MongoDB
- */
+// Fetch stored profile image from MongoDB
+
 export const getProfileImage = async (req, res) => {
   try {
     const resume = await Resume.findById(req.params.id);
