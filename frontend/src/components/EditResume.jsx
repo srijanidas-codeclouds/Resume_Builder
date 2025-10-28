@@ -31,6 +31,29 @@ import Modal from "./Modal"
 import ThemeSelector from "./ThemeSelector"
 
 
+// List of tabs and their associated page keys
+const TABS = [
+  { label: "Personal", key: "profile-info" },
+  { label: "Contact", key: "contact-info" },
+  { label: "Experience", key: "work-experience" },
+  { label: "Education", key: "education-info" },
+  { label: "Skills", key: "skills" },
+  { label: "Projects", key: "projects" },
+  { label: "Certifications", key: "certifications" },
+  { label: "Additional", key: "additionalInfo" },
+]
+
+// Function to update current page + progress from tab click
+const handleTabClick = (key) => {
+  const index = TABS.findIndex((t) => t.key === key)
+  if (index === -1) return
+
+  setCurrentPage(key)
+  const percent = Math.round((index / (TABS.length - 1)) * 100)
+  setProgress(percent)
+  window.scrollTo({ top: 0, behavior: "smooth" })
+}
+
 // Resize observer hook
 const useResizeObserver = () => {
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -292,54 +315,40 @@ const EditResume = () => {
   }
 
   const goToNextStep = () => {
-    const pages = [
-      "profile-info",
-      "contact-info",
-      "work-experience",
-      "education-info",
-      "skills",
-      "projects",
-      "certifications",
-      "additionalInfo",
-    ]
-
-    if (currentPage === "additionalInfo") setOpenPreviewModal(true)
-
-    const currentIndex = pages.indexOf(currentPage)
-    if (currentIndex !== -1 && currentIndex < pages.length - 1) {
-      const nextIndex = currentIndex + 1
-      setCurrentPage(pages[nextIndex])
-
-      const percent = Math.round((nextIndex / (pages.length - 1)) * 100)
-      setProgress(percent)
-      window.scrollTo({ top: 0, behavior: "smooth" })
-    }
+  const pages = TABS.map((t) => t.key)
+  if (currentPage === "additionalInfo") {
+    setOpenPreviewModal(true)
+    return
   }
 
-  const goBack = () => {
-    const pages = [
-      "profile-info",
-      "contact-info",
-      "work-experience",
-      "education-info",
-      "skills",
-      "projects",
-      "certifications",
-      "additionalInfo",
-    ]
-
-    if (currentPage === "profile-info") navigate("/dashboard")
-
-    const currentIndex = pages.indexOf(currentPage)
-    if (currentIndex > 0) {
-      const prevIndex = currentIndex - 1
-      setCurrentPage(pages[prevIndex])
-
-      const percent = Math.round((prevIndex / (pages.length - 1)) * 100)
-      setProgress(percent)
-      window.scrollTo({ top: 0, behavior: "smooth" })
-    }
+  const currentIndex = pages.indexOf(currentPage)
+  if (currentIndex !== -1 && currentIndex < pages.length - 1) {
+    const nextIndex = currentIndex + 1
+    setCurrentPage(pages[nextIndex])
+    const percent = Math.round((nextIndex / (pages.length - 1)) * 100)
+    setProgress(percent)
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
+}
+
+const goBack = () => {
+  const pages = TABS.map((t) => t.key)
+  const currentIndex = pages.indexOf(currentPage)
+
+  if (currentPage === "profile-info") {
+    navigate("/dashboard")
+    return
+  }
+
+  if (currentIndex > 0) {
+    const prevIndex = currentIndex - 1
+    setCurrentPage(pages[prevIndex])
+    const percent = Math.round((prevIndex / (pages.length - 1)) * 100)
+    setProgress(percent)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+}
+
 
   const renderForm = () => {
     switch (currentPage) {
@@ -595,65 +604,95 @@ const EditResume = () => {
   }
 
   const downloadPDF = async () => {
-    const element = resumeDownloadRef.current;
-    if (!element) {
-      toast.error("Failed to generate PDF. Please try again.");
-      return;
+  const element = resumeDownloadRef.current;
+  if (!element) {
+    toast.error("Failed to generate PDF. Please try again.");
+    return;
+  }
+
+  setIsDownloading(true);
+  setDownloadSuccess(false);
+  const toastId = toast.loading("Generating PDF…");
+
+  // Temporary override to make sure colors print correctly
+  const override = document.createElement("style");
+  override.id = "__pdf_color_override__";
+  override.textContent = `
+    * {
+      color: #000 !important;
+      background-color: #fff !important;
+      border-color: #000 !important;
     }
-  
-    setIsDownloading(true);
-    setDownloadSuccess(false);
-    const toastId = toast.loading("Generating PDFâ€¦");
-  
-    const override = document.createElement("style");
-    override.id = "__pdf_color_override__";
-    override.textContent = `
-      * {
-        color: #000 !important;
-        background-color: #fff !important;
-        border-color: #000 !important;
-      }
-    `;
-    document.head.appendChild(override);
-  
-    try {
-      await html2pdf()
-        .set({
-          margin:       0,
-          filename:     `${resumeData.title.replace(/[^a-z0-9]/gi, "_")}.pdf`,
-          image:        { type: "png", quality: 1.0 },
-          html2canvas:  {
-            scale:           2,
-            useCORS:         true,
-            backgroundColor: "#FFFFFF",
-            logging:         false,
-            windowWidth:     element.scrollWidth,
-          },
-          jsPDF:        {
-            unit:       "mm",
-            format:     "a4",
-            orientation:"portrait",
-          },
-          pagebreak: {
-            mode: ['avoid-all', 'css', 'legacy']
-          }
-        })
-        .from(element)
-        .save();
-  
-      toast.success("PDF downloaded successfully!", { id: toastId });
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 3000);
-  
-    } catch (err) {
-      console.error("PDF error:", err);
-      toast.error(`Failed to generate PDF: ${err.message}`, { id: toastId });
-  
-    } finally {
-      document.getElementById("__pdf_color_override__")?.remove();
-      setIsDownloading(false);
+  `;
+  document.head.appendChild(override);
+
+  try {
+    // Define A4 size in pixels at 96 DPI (~793×1122 px)
+    const a4WidthPx = 793.7;
+    const a4HeightPx = 1122.5;
+
+    // Clone the element to measure height cleanly
+    const cloned = element.cloneNode(true);
+    cloned.style.width = `${a4WidthPx}px`;
+    cloned.style.position = "absolute";
+    cloned.style.left = "-9999px";
+    cloned.style.top = "0";
+    cloned.classList.add("a4-wrapper");
+    document.body.appendChild(cloned);
+
+    // Calculate how many pages we need
+    const totalHeight = cloned.scrollHeight;
+    const totalPages = Math.ceil(totalHeight / a4HeightPx);
+
+    // Convert to image using html2canvas
+    const canvas = await html2canvas(cloned, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#FFFFFF",
+      windowWidth: a4WidthPx,
+      scrollX: 0,
+      scrollY: 0,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    // Calculate scale to fit width
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pageWidth;
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    let yOffset = 0;
+    for (let i = 0; i < totalPages; i++) {
+      if (i > 0) pdf.addPage();
+      pdf.addImage(
+        imgData,
+        "PNG",
+        0,
+        -i * pageHeight,
+        pdfWidth,
+        pdfHeight
+      );
     }
-  };
+
+    pdf.save(`${resumeData.title.replace(/[^a-z0-9]/gi, "_")}.pdf`);
+
+    toast.success("PDF downloaded successfully!", { id: toastId });
+    setDownloadSuccess(true);
+    setTimeout(() => setDownloadSuccess(false), 3000);
+  } catch (err) {
+    console.error("PDF error:", err);
+    toast.error(`Failed to generate PDF: ${err.message}`, { id: toastId });
+  } finally {
+    document.getElementById("__pdf_color_override__")?.remove();
+    const clone = document.querySelector(".a4-wrapper");
+    if (clone) clone.remove();
+    setIsDownloading(false);
+  }
+};
 
   const updateTheme = (theme) => {
     setResumeData(prev => ({
@@ -729,33 +768,22 @@ const EditResume = () => {
                 <StepProgress progress={progress} />
               </div>
 
-              {/* Tabs */}
-          <div className="flex justify-around text-sm font-medium border-b border-gray-200">
-            <button className="py-2 px-4 text-blue-600 border-b-2 border-blue-600">
-              Personal
-            </button>
-            <button className="py-2 px-4 text-gray-500 hover:text-blue-600 transition-colors">
-              Contact
-            </button>
-            <button className="py-2 px-4 text-gray-500 hover:text-blue-600 transition-colors">
-              Education
-            </button>
-            <button className="py-2 px-4 text-gray-500 hover:text-blue-600 transition-colors">
-              Project
-            </button>
-            <button className="py-2 px-4 text-gray-500 hover:text-blue-600 transition-colors">
-              Experience
-            </button>
-            <button className="py-2 px-4 text-gray-500 hover:text-blue-600 transition-colors">
-              Skills
-            </button>
-            <button className="py-2 px-4 text-gray-500 hover:text-blue-600 transition-colors">
-              Certifications
-            </button>
-            <button className="py-2 px-4 text-gray-500 hover:text-blue-600 transition-colors">
-              Additional
-            </button>
-          </div>
+              {/* Tabs Navigation */}
+            <div className="flex overflow-x-auto no-scrollbar border-b border-gray-200 text-sm font-medium">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => handleTabClick(tab.key)}
+                  className={`whitespace-nowrap py-2 px-4 transition-colors ${
+                    currentPage === tab.key
+                      ? "text-blue-600 border-b-2 border-blue-600 font-semibold"
+                      : "text-gray-500 hover:text-blue-600"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
               {/* Active Form */}
               <div className="">
@@ -860,7 +888,7 @@ const EditResume = () => {
             maxWidth="max-w-6xl" // wider for template previews
           >
             {/* Outer wrapper handles modal scroll safely */}
-            <div className="w-full h-[75vh] overflow-y-auto overflow-x-hidden rounded-md">
+            <div className="w-full h-[70vh] overflow-y-auto overflow-x-hidden rounded-md">
               <ThemeSelector
                 selectedTheme={resumeData?.template?.theme}
                 setSelectedTheme={updateTheme}
@@ -871,46 +899,92 @@ const EditResume = () => {
 
           {/* ===== Preview Modal ===== */}
           <Modal
-            isOpen={openPreviewModal}
-            onClose={() => setOpenPreviewModal(false)}
-            title={resumeData.title}
-            showActionBtn
-            actionBtnText={
-              isDownloading
-                ? "Downloading..."
-                : downloadSuccess
-                ? "Downloaded"
-                : "Download PDF"
-            }
-            actionBtnIcon={
-              isDownloading ? (
-                <Loader2 className="animate-spin" />
-              ) : downloadSuccess ? (
-                <Check className="w-5 h-5 text-white" />
-              ) : (
-                <Download className="w-5 h-5" />
-              )
-            }
-            onActionClick={downloadPDF}
-          >
-            <div className="text-center mb-4">
-              <div className="inline-flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-sm font-medium text-gray-700">
-                <div className="w-2 h-2 bg-orange-600 rounded-full"></div>
-                <span>{completionPercentage}% Complete</span>
-              </div>
-            </div>
-            <div className="preview-container relative rounded-lg overflow-hidden border border-gray-100">
-              <div ref={resumeDownloadRef} className="a4-wrapper">
-                <RenderResume
-                  key={`pdf-${resumeData?.template?.theme}`}
-                  resumeData={resumeData}
-                  templateId={resumeData?.template?.theme || ""}
-                  containerWidth={null}
-                />
-              </div>
-            </div>
-          </Modal>
+  isOpen={openPreviewModal}
+  onClose={() => setOpenPreviewModal(false)}
+  title={resumeData.title}
+  showActionBtn
+  actionBtnText={
+    isDownloading
+      ? "Downloading..."
+      : downloadSuccess
+      ? "Downloaded"
+      : "Download PDF"
+  }
+  actionBtnIcon={
+    isDownloading ? (
+      <Loader2 className="animate-spin" />
+    ) : downloadSuccess ? (
+      <Check className="w-5 h-5 text-white" />
+    ) : (
+      <Download className="w-5 h-5" />
+    )
+  }
+  onActionClick={downloadPDF}
+  maxWidth="max-w-5xl"
+>
+  <div className="flex flex-col items-center w-full">
+    {/* Completion badge */}
+    <div className="text-center mb-5">
+      <div className="inline-flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full text-sm font-medium text-gray-700 shadow-sm">
+        <div className="w-2 h-2 bg-orange-600 rounded-full"></div>
+        <span>{completionPercentage}% Complete</span>
+      </div>
+    </div>
 
+    {/* Preview container */}
+    <div
+      className="
+        w-full 
+        flex justify-center 
+        bg-white 
+        border border-gray-200 
+        rounded-xl 
+        overflow-hidden 
+        shadow-sm 
+        max-h-[80vh] 
+        p-2 sm:p-3 md:p-4
+      "
+    >
+      <div
+        className="
+          relative 
+          w-full 
+          max-w-[850px] 
+          h-auto 
+          overflow-auto 
+          rounded-lg 
+          scrollbar-thin 
+          scrollbar-thumb-gray-300 
+          scrollbar-track-transparent
+        "
+      >
+        <div
+          ref={resumeDownloadRef}
+          className="
+            bg-white 
+            mx-auto 
+            p-2 sm:p-4 
+            scale-[0.9] sm:scale-[0.95] md:scale-100 
+            transform 
+            origin-top 
+            transition-all 
+            duration-200
+          "
+        >
+          <RenderResume
+            key={`pdf-${resumeData?.template?.theme}`}
+            resumeData={resumeData}
+            templateId={resumeData?.template?.theme || ""}
+            containerWidth={null}
+          />
+        </div>
+      </div>
+    </div>
+
+    {/* Footer spacing for smaller screens */}
+    <div className="h-3 sm:h-4"></div>
+  </div>
+          </Modal>
           <div style={{ display: "none" }} ref={thumbnailRef}>
             <div className="bg-white shadow-lg max-w-[400px] mx-auto">
               <RenderResume

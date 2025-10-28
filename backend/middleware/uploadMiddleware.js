@@ -1,24 +1,11 @@
 import multer from "multer";
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/')
-    },
-    filename: function (req, file, cb) {
-        cb(null, `${Date.now()}-${file.originalname}`)
-    }
-})
+// Use memory storage instead of disk storage
+const storage = multer.memoryStorage();
 
-// file filtering
-const fileFilter = (req,file,cb) =>{
-    const allowedFileTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-    if(allowedFileTypes.includes(file.mimetype)){
-        cb(null,true);
-    }else{
-        cb(new Error('Invalid file type. Only .jpeg, .png, and .jpg files are allowed'),false);
-    }
-}
-
-const upload = multer({storage,fileFilter});
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
 
 export default upload;

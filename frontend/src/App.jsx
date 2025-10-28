@@ -8,6 +8,7 @@ import SignUp from './pages/SignUp.jsx';
 // import EditingResume from './components/EditingResume.jsx';
 import { Toaster } from 'react-hot-toast';
 import EditResume from './components/EditResume.jsx';
+import ViewTemplate from './components/ViewTemplate.jsx';
 
 const AppRoutes = () => {
   const { user, loading } = useContext(UserContext);
@@ -37,6 +38,8 @@ const AppRoutes = () => {
         path='/resume/:resumeId'
         element={<EditResume /> }
       />
+      <Route path="/templates" element={<ViewTemplate />} />
+
     </Routes>
   );
 };

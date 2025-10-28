@@ -1,7 +1,7 @@
 import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
 import { createResume, deleteResume, getResumeById, getUserResume, updateResume } from "../controllers/resumeController.js";
-import { uploadResumeImage } from "../controllers/uploadController.js";
+import { getProfileImage, getResumeThumbnail, uploadResumeImage } from "../controllers/uploadController.js";
 import upload from "../middleware/uploadMiddleware.js";
 
 const resumeRouter = express.Router();
@@ -21,6 +21,8 @@ resumeRouter.put(
   ]),
   uploadResumeImage
 );
+resumeRouter.get("/:id/thumbnail", getResumeThumbnail);
+resumeRouter.get("/:id/profile-image", getProfileImage);
 
 resumeRouter.delete("/:id",protect, deleteResume);
 

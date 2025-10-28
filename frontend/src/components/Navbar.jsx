@@ -8,10 +8,10 @@ import { UserContext } from "@/context/UserContext";
 import Features from "./Features";
 
 const navigation = [
-  { name: "Home", href: "#" },
-  { name: "Features", href: '#' },
-  { name: "Testimonials", href: "#" },
-  { name: "Contact", href: "#" },
+  { name: "Home", href: "/" },
+  { name: "Features", href: '#features' },
+  { name: "Testimonials", href: "#testimonials" },
+  { name: "Contact", href: "#contact" },
 ];
 
 const Navbar = () => {
