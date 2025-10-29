@@ -12,22 +12,23 @@ const VerifyEmail = () => {
   useEffect(() => {
     const verifyEmail = async () => {
       try {
-        console.log("Verifying token:", token);
+    const response = await axiosInstance.post(
+        API_PATHS.AUTH.VERIFY,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
 
-        const response = await axiosInstance.post("/api/auth/verify", {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-        });
-        console.log("Calling:", `${API_PATHS.AUTH.VERIFY}`);
-        console.log("Header:", `Bearer ${token}`);
-        console.log(response);
+        console.log(response.data);
 
 
         setMessage(response.data.message || "Email verified successfully!");
         setStatus("success");
 
-        // Redirect to login after 2 seconds
-        setTimeout(() => navigate("/signin"), 2000);
+        // Redirect to login after 20 seconds
+        setTimeout(() => navigate("/signin"), 20000);
       } catch (error) {
         console.error(error);
         setStatus("error");
