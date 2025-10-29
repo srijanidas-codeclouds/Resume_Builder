@@ -72,7 +72,7 @@ export const verification = async (req, res) => {
             })
         }
 
-        const token = authHeader.split(" ")[1]
+        const token = authHeader && authHeader.split(" ")[1];
 
         let decoded;
         try {

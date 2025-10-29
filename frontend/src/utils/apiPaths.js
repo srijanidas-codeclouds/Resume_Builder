@@ -7,6 +7,7 @@ export const API_PATHS = {
         LOGIN: `/api/auth/login`,
         GET_PROFILE: `/api/auth/profile`,
         LOGOUT: `/api/auth/logout`,
+        VERIFY: `/api/auth/verify`,
     },
     RESUME:{
         CREATE: `api/resumes`,

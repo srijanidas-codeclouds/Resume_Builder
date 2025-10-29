@@ -1,36 +1,48 @@
+/* --- PRINT & PDF STYLES --- */
 @media print {
   @page {
-    size: A4;
+    size: A4 portrait;
     margin: 0;
   }
 
   html,
   body {
+    width: 210mm;
+    height: 297mm;
     margin: 0;
     padding: 0;
-    height: 297mm;
-    width: 210mm;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact; /* Ensure Tailwind colors print correctly */
+    print-color-adjust: exact;
   }
-}
 
-/* Force resume container to fit A4 width */
-.a4-wrapper {
-  width: 210mm;
-  min-height: 297mm;
-  background: white;
-  box-sizing: border-box;
-  overflow: hidden;
-  page-break-after: always;
-}
+  /* Force resume container to fit A4 */
+  .a4-wrapper {
+    width: 210mm;
+    min-height: 297mm;
+    background: white;
+    box-sizing: border-box;
+    overflow: hidden;
+    page-break-after: always;
+    padding: 10mm; /* optional padding for margins */
+  }
 
-/* Avoid breaking inside important elements */
-.a4-wrapper h1,
-.a4-wrapper h2,
-.a4-wrapper h3,
-.a4-wrapper h4,
-.a4-wrapper .section-title,
-.a4-wrapper .resume-section {
-  page-break-inside: avoid;
-  break-inside: avoid;
-  page-break-after: avoid;
+  /* Avoid breaking inside important elements */
+  .a4-wrapper h1,
+  .a4-wrapper h2,
+  .a4-wrapper h3,
+  .a4-wrapper h4,
+  .a4-wrapper .section-title,
+  .a4-wrapper .resume-section {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  /* Optional: hide UI buttons and toolbars when printing */
+  .no-print,
+  .toolbar,
+  .preview-controls {
+    display: none !important;
+  }
 }

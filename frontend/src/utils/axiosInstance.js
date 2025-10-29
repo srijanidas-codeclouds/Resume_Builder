@@ -26,23 +26,21 @@ axiosInstance.interceptors.request.use(
 
 // response interceptor to handle responses globally
 axiosInstance.interceptors.response.use(
-    (response) => {
-        return response;
-    },
-    (error) => {
-        // Handle errors globally
-        if (error.response) {
-            // Server responded with a status other than 2xx  
-            if (error.response.status === 401) {
-                window.location.href = '/';
-            }else if (error.response.status === 500) {
-            console.error('Server error, please try again later.');
-            } 
-        }else if (error.code === 'ECONNABORTED') {
-            console.error('Request timeout, please try again.');
-        }
-        return Promise.reject(error);
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      console.error("Axios Error:", error.response.data);
+      if (error.response.status === 401) {
+        window.location.href = '/';
+      } else if (error.response.status === 500) {
+        console.error('Server error, please try again later.');
+      }
+    } else if (error.code === 'ECONNABORTED') {
+      console.error('Request timeout, please try again.');
     }
+    return Promise.reject(error);
+  }
 );
+
 
 export default axiosInstance;

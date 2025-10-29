@@ -10,7 +10,7 @@ import { LucideFilePlus2, LucideTrash2, Plus } from 'lucide-react';
 import moment from 'moment';
 import React, { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
 
 
 const Dashboard = () => {
@@ -20,6 +20,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [deletingResumeId, setDeletingResumeId] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState('modern');
   const { user} = useContext(UserContext);
   
    // Calculate completion percentage for a resume
@@ -42,7 +43,7 @@ const Dashboard = () => {
     resume.workExperience?.forEach(exp => {
       totalFields += 5;
       if (exp.company) completedFields++;
-      if (exp.role) completedFields++;
+      if (exp.title) completedFields++;
       if (exp.startDate) completedFields++;
       if (exp.endDate) completedFields++;
       if (exp.description) completedFields++;
@@ -50,11 +51,12 @@ const Dashboard = () => {
 
     // Education
     resume.education?.forEach(edu => {
-      totalFields += 4;
+      totalFields += 5;
       if (edu.degree) completedFields++;
       if (edu.institution) completedFields++;
       if (edu.startDate) completedFields++;
       if (edu.endDate) completedFields++;
+      if (edu.gpa) completedFields++;
     });
 
     // Skills
@@ -76,9 +78,9 @@ const Dashboard = () => {
     // Certifications
     resume.certifications?.forEach(cert => {
       totalFields += 3;
-      if (cert.title) completedFields++;
+      if (cert.name) completedFields++;
       if (cert.issuer) completedFields++;
-      if (cert.year) completedFields++;
+      if (cert.issueDate) completedFields++;
     });
 
     // Languages
@@ -89,8 +91,11 @@ const Dashboard = () => {
     });
 
     // Interests
-    totalFields += (resume.interests?.length || 0);
-    completedFields += (resume.interests?.filter(i => i?.trim() !== "")?.length || 0);
+    totalFields += resume.interests?.length || 0;
+    completedFields +=
+      resume.interests?.filter((i) =>
+        typeof i === 'string' ? i.trim() !== '' : i?.name?.trim() !== ''
+      )?.length || 0;
 
     return Math.round((completedFields / totalFields) * 100);
   };
@@ -173,7 +178,7 @@ const Dashboard = () => {
                     You haven't created any resumes yet. Click the button below to create your first resume and start building your professional profile.
                 </p>
                 <button
-                    onClick={() => setOpenCreateModal(true)}
+                    onClick={() => setOpenTemplateSelector(true)}
                     className='flex gap-1 group relative rounded-lg border-2 border-sky-400 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:shadow-lg cursor-pointer'
                 >
                     <span className='absolute top-0 left-0 size-full rounded-md border border-dashed border-sky-50 shadow-inner shadow-white/30 group-active:shadow-white/10' />
@@ -209,25 +214,55 @@ const Dashboard = () => {
                 </div>
             )}
         </div>
+        {/* ================= Template Selector Modal ================= */}
+        {/* <Modal
+          isOpen={openTemplateSelector}
+          onClose={() => setOpenTemplateSelector(false)}
+          title="Select Template"
+          maxWidth="max-w-6xl"
+          className="p-6"
+        >
+          <ThemeSelector
+            selectedTheme={selectedTemplate}
+            setSelectedTheme={setSelectedTemplate}
+            onClose={() => {
+              setOpenTemplateSelector(false);
+              setOpenCreateModal(true); 
+            }}
+          />
+        </Modal> */}
         {/* Create Modal */}
         <Modal
-            isOpen={openCreateModal}
-            onClose={() => setOpenCreateModal(false)}
-            hideHeader 
-            maxWidth="max-w-md"
-            className="p-10">
-            <div className="p-4">
-                <div className='flex items-center justify-between mb-4'>
-                    <h3 className="text-[24px] flex-1 font-semibold text-center ">New Resume</h3>
-                    <button onClick={() => setOpenCreateModal(false)}
-                        className="text-[20px] flex items-center justify-center rounded-full hover:bg-muted ">X</button>
-                </div>
-                <CreateResumeForm onSuccess={() => {
-                    setOpenCreateModal(false);
-                    fetchAllResumes();
-                }} />
-            </div>
-        </Modal>
+        isOpen={openCreateModal}
+        onClose={() => setOpenCreateModal(false)}
+        hideHeader
+        maxWidth="max-w-lg"
+        className="p-6"
+      >
+        <div className="mb-2">
+          <div className="mt-1 relative">
+            {/* <h3 className="text-[24px] flex-1 font-semibold text-center">
+              New Resume
+            </h3> */}
+            {/* top right corner close button */}
+            <button
+              onClick={() => setOpenCreateModal(false)}
+              className="absolute top-4 right-5 text-gray-600 border border-gray-300 w-6 h-6 rounded-lg flex items-center justify-center hover:border-gray-800"
+            >
+              X
+            </button>
+          </div>
+
+          <CreateResumeForm
+            selectedTemplate={selectedTemplate}
+            setSelectedTemplate={setSelectedTemplate}
+            onSuccess={() => {
+              setOpenCreateModal(false);
+              fetchAllResumes();
+            }}
+          />
+        </div>
+      </Modal>
         {/* Delete Modal */}
         <Modal 
             isOpen={showDeleteConfirm}

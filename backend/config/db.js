@@ -16,7 +16,12 @@ export const connectDB = async () => {
             mongourl = mongourl.slice(0, -1);
         }
          
-        await mongoose.connect(`${mongourl}/${project}`);
+        await mongoose.connect(process.env.MONGO_URI, {
+        // useNewUrlParser: true,
+        // useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+        });
         
     } catch (error) {
         console.log("Error connecting to database",error.message);

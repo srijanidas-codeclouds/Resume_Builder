@@ -7,13 +7,13 @@ import fs from "fs";
 // create resume
 export const createResume = async (req, res) => {
     try {
-        const { title } = req.body;
+        const { template,title } = req.body;
 
         // Default template
         const defaultResumeData = {
             profileInfo: {
                 profileImg: null,
-                previewUrl: '',
+                profilePreviewUrl: '',
                 fullName: '',
                 designation: '',
                 summary: '',
@@ -29,7 +29,7 @@ export const createResume = async (req, res) => {
             workExperience: [
                 {
                     company: '',
-                    role: '',
+                    title: '',
                     startDate: '',
                     endDate: '',
                     description: '',
@@ -63,7 +63,7 @@ export const createResume = async (req, res) => {
                 {
                     title: '',
                     issuer: '',
-                    year: '',
+                    issueDate: '',
                     description: '',
                 },
             ],
@@ -73,11 +73,16 @@ export const createResume = async (req, res) => {
                     progress: '',
                 },
             ],
-            interests: [''],
+            interests: [
+                {
+                    name: '',
+                },
+            ],
         };
 
         const newResume = await Resume.create({
             userId: req.user.id,
+            template: template || { theme: "modern", colorPalette: [] },
             title,
             ...defaultResumeData,
             ...req.body,

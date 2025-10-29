@@ -121,7 +121,7 @@ const Template2 = ({ resumeData = {}, containerWidth }) => {
                 <div className="flex justify-between items-start">
                   <div className="pr-2">
                     <h3 className="font-semibold text-[12px] text-gray-800">
-                      {exp.role}
+                      {exp.title}
                     </h3>
                     <p className="italic text-[11px] text-gray-600">
                       {exp.company}
@@ -269,7 +269,7 @@ const Template2 = ({ resumeData = {}, containerWidth }) => {
 
       {/* ===== Languages & Interests ===== */}
       {(languages.length > 0 || interests.length > 0) && (
-        <section>
+        <section className="grid grid-cols-1 ">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {languages.length > 0 && (
               <div>
@@ -287,7 +287,7 @@ const Template2 = ({ resumeData = {}, containerWidth }) => {
               </div>
             )}
             {interests.length > 0 && interests.some(Boolean) && (
-              <div>
+              <div className="">
                 <h2 className={sectionTitleClass}>Interests</h2>
                 <ul className="flex flex-wrap gap-1 text-[11px] text-gray-700">
                   {interests
@@ -297,7 +297,7 @@ const Template2 = ({ resumeData = {}, containerWidth }) => {
                         key={idx}
                         className="bg-gray-100 px-1.5 py-0.5 rounded-full"
                       >
-                        {int}
+                        {int?.name || ''}
                       </li>
                     ))}
                 </ul>

@@ -29,6 +29,7 @@ import StepProgress from "./StepProgress"
 import RenderResume from "./RenderResume"
 import Modal from "./Modal"
 import ThemeSelector from "./ThemeSelector"
+import jsPDF from "jspdf"
 
 
 // List of tabs and their associated page keys
@@ -94,6 +95,7 @@ const EditResume = () => {
     title: "Professional Resume",
     thumbnailLink: "",
     profileInfo: {
+      profilePreviewUrl: "",
       fullName: "",
       designation: "",
       summary: "",
@@ -113,10 +115,12 @@ const EditResume = () => {
     workExperience: [
       {
         company: "",
-        role: "",
+        title: "",
         startDate: "",
         endDate: "",
         description: "",
+        location: "",
+        is_current: false,
       },
     ],
     education: [
@@ -125,6 +129,7 @@ const EditResume = () => {
         institution: "",
         startDate: "",
         endDate: "",
+        gpa: "",
       },
     ],
     skills: [
@@ -145,7 +150,8 @@ const EditResume = () => {
       {
         title: "",
         issuer: "",
-        year: "",
+        issueDate: "",
+        description: "",
       },
     ],
     languages: [
@@ -154,7 +160,11 @@ const EditResume = () => {
         progress: 0,
       },
     ],
-    interests: [""],
+    interests: [
+      {
+        name: "",
+      }
+    ],
   })
 
   // Calculate completion percentage
@@ -225,7 +235,7 @@ const EditResume = () => {
 
     // Interests
     totalFields += resumeData.interests.length;
-    completedFields += resumeData.interests.filter(i => i.trim() !== "").length;
+    completedFields += (resumeData.interests?.filter(i => i?.name?.trim() !== "")?.length || 0);
 
     const percentage = Math.round((completedFields / totalFields) * 100);
     setCompletionPercentage(percentage);
@@ -251,13 +261,13 @@ const EditResume = () => {
       case "contact-info":
         const { email, phone } = resumeData.contactInfo
         if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) errors.push("Valid email is required.")
-        if (!phone.trim() || !/^\d{10}$/.test(phone)) errors.push("Valid 10-digit phone number is required")
+        // if (!phone.trim() || !/^\d{10}$/.test(phone)) errors.push("Valid 10-digit phone number is required")
         break
 
       case "work-experience":
-        resumeData.workExperience.forEach(({ company, role, startDate, endDate }, index) => {
+        resumeData.workExperience.forEach(({ company, title, startDate, endDate }, index) => {
           if (!company || !company.trim()) errors.push(`Company is required in experience ${index + 1}`)
-          if (!role || !role.trim()) errors.push(`Role is required in experience ${index + 1}`)
+          if (!title || !title.trim()) errors.push(`Title is required in experience ${index + 1}`)
           if (!startDate || !endDate) errors.push(`Start and End dates are required in experience ${index + 1}`)
         })
         break
@@ -286,19 +296,19 @@ const EditResume = () => {
         break
 
       case "certifications":
-        resumeData.certifications.forEach(({ title, issuer }, index) => {
-          if (!title.trim()) errors.push(`Certification Title is required in certification ${index + 1}`)
-          if (!issuer.trim()) errors.push(`Issuer is required in certification ${index + 1}`)
+        resumeData.certifications.forEach(({ name, issuer }, index) => {
+          // if (!name) errors.push(`Certification Title is required in certification ${index + 1}`)
+          // if (!issuer) errors.push(`Issuer is required in certification ${index + 1}`)
         })
         break
 
       case "additionalInfo":
-        if (resumeData.languages.length === 0 || !resumeData.languages[0].name?.trim()) {
-          errors.push("At least one language is required")
-        }
-        if (resumeData.interests.length === 0 || !resumeData.interests[0]?.trim()) {
-          errors.push("At least one interest is required")
-        }
+        // if (resumeData.languages.length === 0 || !resumeData.languages[0].name?.trim()) {
+        //   errors.push("At least one language is required")
+        // }
+        // if (resumeData.interests.length === 0 || !resumeData.interests[0]?.trim()) {
+        //   errors.push("At least one interest is required")
+        // }
         break
 
       default:
@@ -348,7 +358,6 @@ const goBack = () => {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 }
-
 
   const renderForm = () => {
     switch (currentPage) {
@@ -603,7 +612,7 @@ const goBack = () => {
     }
   }
 
-  const downloadPDF = async () => {
+const downloadPDF = async () => {
   const element = resumeDownloadRef.current;
   if (!element) {
     toast.error("Failed to generate PDF. Please try again.");
@@ -614,82 +623,67 @@ const goBack = () => {
   setDownloadSuccess(false);
   const toastId = toast.loading("Generating PDF…");
 
-  // Temporary override to make sure colors print correctly
-  const override = document.createElement("style");
-  override.id = "__pdf_color_override__";
-  override.textContent = `
-    * {
-      color: #000 !important;
-      background-color: #fff !important;
-      border-color: #000 !important;
-    }
-  `;
-  document.head.appendChild(override);
-
   try {
-    // Define A4 size in pixels at 96 DPI (~793×1122 px)
-    const a4WidthPx = 793.7;
-    const a4HeightPx = 1122.5;
-
-    // Clone the element to measure height cleanly
+    // Clone the node and ensure it's visible and isolated
     const cloned = element.cloneNode(true);
-    cloned.style.width = `${a4WidthPx}px`;
+    cloned.style.transform = "none";
+    cloned.style.scale = "1";
+    cloned.style.width = "210mm";
+    cloned.style.background = "#FFFFFF";
     cloned.style.position = "absolute";
-    cloned.style.left = "-9999px";
     cloned.style.top = "0";
-    cloned.classList.add("a4-wrapper");
+    cloned.style.left = "0";
+    cloned.style.zIndex = "-1";
+    cloned.style.opacity = "1";
+    cloned.style.display = "block";
+
+    // Append temporarily to the DOM to ensure proper rendering
     document.body.appendChild(cloned);
 
-    // Calculate how many pages we need
-    const totalHeight = cloned.scrollHeight;
-    const totalPages = Math.ceil(totalHeight / a4HeightPx);
-
-    // Convert to image using html2canvas
-    const canvas = await html2canvas(cloned, {
-      scale: 2,
-      useCORS: true,
+    // Convert DOM to PNG using html-to-image (force inline styles + CORS)
+    const dataUrl = await htmlToImage.toPng(cloned, {
       backgroundColor: "#FFFFFF",
-      windowWidth: a4WidthPx,
-      scrollX: 0,
-      scrollY: 0,
+      pixelRatio: 2,
+      cacheBust: true,
+      useCORS: true,
+      skipFonts: false,
+      style: {
+        transform: "none",
+        opacity: "1",
+        display: "block",
+      },
     });
 
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
+    // Remove cloned element from DOM after conversion
+    document.body.removeChild(cloned);
 
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-
-    // Calculate scale to fit width
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pageWidth;
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-    let yOffset = 0;
-    for (let i = 0; i < totalPages; i++) {
-      if (i > 0) pdf.addPage();
-      pdf.addImage(
-        imgData,
-        "PNG",
-        0,
-        -i * pageHeight,
-        pdfWidth,
-        pdfHeight
-      );
+    // Validate image data
+    if (!dataUrl || !dataUrl.startsWith("data:image/png")) {
+      throw new Error("Invalid image data returned from html-to-image");
     }
 
+    // Create PDF
+    const pdf = new jsPDF("p", "mm", "a4");
+    const img = new Image();
+    img.src = dataUrl;
+
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+    });
+
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (img.height * pdfWidth) / img.width;
+
+    pdf.addImage(img, "PNG", 0, 0, pdfWidth, pdfHeight);
     pdf.save(`${resumeData.title.replace(/[^a-z0-9]/gi, "_")}.pdf`);
 
     toast.success("PDF downloaded successfully!", { id: toastId });
     setDownloadSuccess(true);
-    setTimeout(() => setDownloadSuccess(false), 3000);
   } catch (err) {
-    console.error("PDF error:", err);
+    console.error("PDF generation failed:", err);
     toast.error(`Failed to generate PDF: ${err.message}`, { id: toastId });
   } finally {
-    document.getElementById("__pdf_color_override__")?.remove();
-    const clone = document.querySelector(".a4-wrapper");
-    if (clone) clone.remove();
     setIsDownloading(false);
   }
 };
@@ -844,7 +838,7 @@ const goBack = () => {
             </div>
 
             {/* ===== Right: Preview Section ===== */}
-        <div className="w-full lg:w-1/2 bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+        <div className="w-full lg:w-1/2 bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col">
           <div className="flex justify-between items-center mb-4">
             <h2 className="font-semibold text-lg">Resume Preview</h2>
             <div className="flex gap-2">
@@ -853,15 +847,6 @@ const goBack = () => {
                 className="flex items-center gap-2 px-4 py-2 border border-gray-700 bg-white text-gray-800 rounded-lg hover:bg-gray-100 transition-all"
               >
                 <Eye className="w-4 h-4" /> Preview
-              </Button>
-
-              <Button
-                onClick={downloadPDF}
-                disabled={isLoading}
-                ref={resumeDownloadRef}
-                className="flex items-center gap-2 px-4 py-2 border border-blue-600 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
-              >
-                <Download className="w-4 h-4" /> Download 
               </Button>
             </div>
           </div>
@@ -887,8 +872,9 @@ const goBack = () => {
             title="Select Template"
             maxWidth="max-w-6xl" // wider for template previews
           >
-            {/* Outer wrapper handles modal scroll safely */}
+
             <div className="w-full h-[70vh] overflow-y-auto overflow-x-hidden rounded-md">
+
               <ThemeSelector
                 selectedTheme={resumeData?.template?.theme}
                 setSelectedTheme={updateTheme}
@@ -932,32 +918,8 @@ const goBack = () => {
     </div>
 
     {/* Preview container */}
-    <div
-      className="
-        w-full 
-        flex justify-center 
-        bg-white 
-        border border-gray-200 
-        rounded-xl 
-        overflow-hidden 
-        shadow-sm 
-        max-h-[80vh] 
-        p-2 sm:p-3 md:p-4
-      "
-    >
-      <div
-        className="
-          relative 
-          w-full 
-          max-w-[850px] 
-          h-auto 
-          overflow-auto 
-          rounded-lg 
-          scrollbar-thin 
-          scrollbar-thumb-gray-300 
-          scrollbar-track-transparent
-        "
-      >
+    <div className="md:w-[calc(210mm*0.7)] md:h-[calc(297mm*0.7)] max-md:w-[calc(210mm*0.44)] max-md:h-[calc(297mm*0.44)]"> 
+      <div className="w-[210mm] h-[297mm] md:scale-[0.7] max-md:scale-[0.44] origin-top-left">
         <div
           ref={resumeDownloadRef}
           className="

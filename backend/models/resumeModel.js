@@ -35,9 +35,9 @@ const ResumeSchema = new mongoose.Schema({
         email: String,
         phone: String,
         location: String,
-        linkedin: [String],
-        github: [String],
-        website: [String],
+        linkedin: String,
+        github: String,
+        website: String,
     },
     // Work Experience
     workExperience: [
@@ -48,6 +48,7 @@ const ResumeSchema = new mongoose.Schema({
             endDate: String,
             description: String,
             is_current: Boolean,
+            location: String,
         },
     ],
     // Education school and degree
@@ -55,7 +56,8 @@ const ResumeSchema = new mongoose.Schema({
         {
             institution: String,
             degree: String,
-            year: String,
+            startDate: String,
+            endDate: String,
             gpa: String,
         },
     ],
@@ -93,7 +95,7 @@ const ResumeSchema = new mongoose.Schema({
     ],
     // Interests
     interests: [
-  { type: String }
+  { name: String }
 ]
 
 },{timestamps: true});

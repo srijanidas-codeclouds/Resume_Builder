@@ -14,6 +14,7 @@ const Template1 = ({ resumeData = {}, containerWidth }) => {
     projects = [],
     skills = [],
     certifications = [],
+    languages = [],
     interests = [],
   } = resumeData;
 
@@ -21,12 +22,16 @@ const Template1 = ({ resumeData = {}, containerWidth }) => {
   const [baseWidth, setBaseWidth] = useState(1100);
   const [scale, setScale] = useState(1);
 
-  const linkedin =
-    typeof contactInfo.linkedin === "string" ? contactInfo.linkedin : "";
-  const github =
-    typeof contactInfo.github === "string" ? contactInfo.github : "";
-  const website =
-    typeof contactInfo.website === "string" ? contactInfo.website : "";
+  // Ensure valid URLs for LinkedIn, GitHub, and Website before rendering
+  const ensureHttps = (url = "") => {
+    if (!url) return "";
+    if (!/^https?:\/\//i.test(url)) return `https://${url}`;
+    return url;
+  };
+
+  const linkedin = ensureHttps(contactInfo.linkedin);
+  const github = ensureHttps(contactInfo.github);
+  const website = ensureHttps(contactInfo.website);
 
   useEffect(() => {
     if (resumeRef.current) {
@@ -49,7 +54,9 @@ const Template1 = ({ resumeData = {}, containerWidth }) => {
   skills.forEach((skill) => {
     if (["Selenium/Webdriver", "TestNG", "Jenkins"].includes(skill.name)) {
       groupedSkills["Automation & Test tools"].push(skill.name);
-    } else if (["Agile", "Scrum", "JIRA", "Microsoft TFS"].includes(skill.name)) {
+    } else if (
+      ["Agile", "Scrum", "JIRA", "Microsoft TFS"].includes(skill.name)
+    ) {
       groupedSkills["Product Management"].push(skill.name);
     } else if (
       ["Python", "Java", "Javascript", "Databases (MySQL)"].includes(skill.name)
@@ -74,16 +81,16 @@ const Template1 = ({ resumeData = {}, containerWidth }) => {
       }}
     >
       {/* ===== HEADER ===== */}
-      <header className="px-10 pt-10 pb-6 border-b border-gray-300 bg-gray-50">
+      <header className="px-0 pt-5 pb-6 border-b border-gray-300 bg-gray-50 ">
         <div className="text-center">
-          <h1 className="text-3xl font-bold uppercase tracking-wide mb-2">
+          <h1 className="text-2xl font-bold uppercase tracking-wide mb-2">
             {profileInfo.fullName}
           </h1>
-          <h2 className="text-lg font-semibold text-gray-700 mb-3">
+          <h2 className="text-md font-semibold text-gray-700 mb-2">
             {profileInfo.designation}
           </h2>
           {profileInfo.summary && (
-            <p className="text-sm text-gray-700 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-sm text-gray-700 leading-relaxed max-w-3xl mx-auto text-justify px-2">
               {profileInfo.summary}
             </p>
           )}
@@ -93,67 +100,90 @@ const Template1 = ({ resumeData = {}, containerWidth }) => {
       {/* ===== BODY ===== */}
       <div className="grid grid-cols-12 gap-8 px-10 py-8 print:px-8 print:py-6">
         {/* ===== LEFT SIDEBAR ===== */}
-        <aside className="col-span-4 pr-6 border-r border-gray-300 space-y-6">
+        <aside className="col-span-4 pr-2 border-r border-gray-300 space-y-2 text-wrap">
           {/* Contact */}
           <section>
             <h2 className="text-sm font-bold uppercase text-gray-800 mb-3 tracking-widest border-b border-gray-200 pb-1">
               Contact
             </h2>
-            <ul className="text-xs text-gray-700 space-y-2">
+            <ul className="text-xs text-gray-700 space-y-1">
               <li className="flex items-start">
                 <span className="font-semibold w-20">Location:</span>
-                <span className="truncate">{contactInfo.location}</span>
+                <span className="break-words">{contactInfo.location || ""}</span>
               </li>
               <li className="flex items-start">
                 <span className="font-semibold w-20">Phone:</span>
-                {contactInfo.phone}
+                {contactInfo.phone || ""}
               </li>
-              <li className="flex items-start">
+              <li className="flex flex-col">
                 <span className="font-semibold w-20">Email:</span>
                 <a
-                  href={`mailto:${contactInfo.email}`}
+                  href={`mailto:${contactInfo.email || ""}`}
                   className="text-blue-600 hover:underline break-all"
                 >
-                  {contactInfo.email}
+                  {contactInfo.email || ""}
                 </a>
               </li>
 
-              {linkedin && (
-                <li className="flex items-start">
-                  <span className="font-semibold w-20">LinkedIn:</span>
-                  <a
-                    href={linkedin}
-                    className="text-blue-600 hover:underline truncate"
-                    title={linkedin}
-                  >
-                    linkedin.com/in/{linkedin.split("/").pop()}
-                  </a>
-                </li>
-              )}
-              {github && (
-                <li className="flex items-start">
-                  <span className="font-semibold w-20">GitHub:</span>
-                  <a
-                    href={github}
-                    className="text-blue-600 hover:underline truncate"
-                    title={github}
-                  >
-                    github.com/{github.split("/").pop()}
-                  </a>
-                </li>
-              )}
-              {website && (
-                <li className="flex items-start">
-                  <span className="font-semibold w-20">Portfolio:</span>
-                  <a
-                    href={website}
-                    className="text-blue-600 hover:underline truncate"
-                    title={website}
-                  >
-                    {website.replace(/(^\w+:|^)\/\//, "")}
-                  </a>
-                </li>
-              )}
+              {/* LinkedIn */}
+  {typeof contactInfo.linkedin === "string" && contactInfo.linkedin.trim() !== "" && (
+    <li className="flex flex-col">
+      <span className="font-semibold">LinkedIn:</span>
+      <a
+        href={
+          /^https?:\/\//i.test(contactInfo.linkedin)
+            ? contactInfo.linkedin
+            : `https://${contactInfo.linkedin}`
+        }
+        className="text-blue-600 hover:underline break-words"
+        title={contactInfo.linkedin}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {String(contactInfo.linkedin).replace(/(^\w+:|^)\/\//, "")}
+      </a>
+    </li>
+  )}
+
+  {/* GitHub */}
+  {typeof contactInfo.github === "string" && contactInfo.github.trim() !== "" && (
+    <li className="flex flex-col">
+      <span className="font-semibold">GitHub:</span>
+      <a
+        href={
+          /^https?:\/\//i.test(contactInfo.github)
+            ? contactInfo.github
+            : `https://${contactInfo.github}`
+        }
+        className="text-blue-600 hover:underline break-words"
+        title={contactInfo.github}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {String(contactInfo.github).replace(/(^\w+:|^)\/\//, "")}
+      </a>
+    </li>
+  )}
+
+  {/* Portfolio / Website */}
+  {typeof contactInfo.website === "string" && contactInfo.website.trim() !== "" && (
+    <li className="flex flex-col">
+      <span className="font-semibold">Portfolio:</span>
+      <a
+        href={
+          /^https?:\/\//i.test(contactInfo.website)
+            ? contactInfo.website
+            : `https://${contactInfo.website}`
+        }
+        className="text-blue-600 hover:underline break-words"
+        title={contactInfo.website}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {String(contactInfo.website).replace(/(^\w+:|^)\/\//, "")}
+      </a>
+    </li>
+  )}
             </ul>
           </section>
 
@@ -189,9 +219,19 @@ const Template1 = ({ resumeData = {}, containerWidth }) => {
               </h2>
               <div className="space-y-3">
                 {education.map((edu, idx) => (
-                  <div key={idx} className="text-xs">
-                    <h3 className="font-semibold">{edu.institution}</h3>
-                    <p className="italic text-gray-700">{edu.degree}</p>
+                  <div key={idx} className="text-xs space-y-0.5">
+                    {/* institution */}
+                    <p className="font-semibold text-gray-800">{edu.institution}</p>
+                    {/* degree */}
+                    <p className=" text-gray-700">{edu.degree}</p>
+                    {/* start and end date */}
+                    <p className="italic text-gray-400">
+                      {edu.startDate} - {edu.endDate}
+                    </p>
+                    {/* gpa */}
+                    {edu.gpa && (
+                      <p className="text-gray-400 italic">GPA: {edu.gpa}</p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -207,7 +247,28 @@ const Template1 = ({ resumeData = {}, containerWidth }) => {
               <ul className="text-xs text-gray-700 space-y-1">
                 {certifications.map((cert, idx) => (
                   <li key={idx}>
-                    {cert.title} ({cert.year})
+                    <span className="font-semibold">{cert.name}</span> -{" "}
+                    <span className="italic">{cert.issueDate}</span>
+                    <br />
+                    <span className="text-gray-500">{cert.issuer}</span>
+
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {/* Languages */}
+          {languages.length > 0 && (
+            <section>
+              <h2 className="text-sm font-bold uppercase text-gray-800 mb-3 tracking-widest border-b border-gray-200 pb-1">
+                Languages
+              </h2>
+              <ul className="text-xs text-gray-700 space-y-1">
+                {languages.map((lang, idx) => (
+                  <li key={idx}>
+                    <span className="font-semibold">{lang.name}</span> -{" "}
+                    <span className="italic">{lang.level}</span>
                   </li>
                 ))}
               </ul>
@@ -222,7 +283,7 @@ const Template1 = ({ resumeData = {}, containerWidth }) => {
               </h2>
               <ul className="text-xs text-gray-700 space-y-1">
                 {interests.map((interest, idx) => (
-                  <li key={idx}>• {interest}</li>
+                  <li key={idx}>• {interest?.name || ''}</li>
                 ))}
               </ul>
             </section>
@@ -230,7 +291,7 @@ const Template1 = ({ resumeData = {}, containerWidth }) => {
         </aside>
 
         {/* ===== MAIN CONTENT ===== */}
-        <main className="col-span-8 pl-4 space-y-6">
+        <main className="col-span-8 pl-2 space-y-6">
           {/* Work Experience */}
           {workExperience.length > 0 && (
             <section>
@@ -284,7 +345,9 @@ const Template1 = ({ resumeData = {}, containerWidth }) => {
                         </div>
                       )}
                     </div>
-                    <p className="mt-1 mb-2 text-gray-700">{proj.description}</p>
+                    <p className="mt-1 mb-2 text-gray-700">
+                      {proj.description}
+                    </p>
                     <div className="flex flex-wrap gap-3 text-xs">
                       {proj.github && (
                         <a
