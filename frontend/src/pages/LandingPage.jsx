@@ -37,6 +37,23 @@ const LandingPage = () => {
           <Features />
         </section>
 
+        {/* How It Works (Blue Theme) */}
+<section
+  id="how-it-works"
+  className="w-full bg-blue-50 px-4 sm:px-8 md:px-12 lg:px-20 xl:px-32 py-16 flex justify-center"
+>
+  <div className="max-w-5xl text-center">
+    <h2 className="text-3xl sm:text-4xl font-bold text-blue-700 mb-8">
+      How It Works
+    </h2>
+    <img
+      src="/howitworks.png"
+      alt="Resume creation process"
+      className="mx-auto w-full max-w-3xl rounded-lg shadow-md border border-blue-100"
+    />
+  </div>
+</section>
+
         {/* Testimonials */}
         <section
           id="testimonials"

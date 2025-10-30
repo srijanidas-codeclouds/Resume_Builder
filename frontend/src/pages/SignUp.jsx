@@ -2,7 +2,7 @@
 
 import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Origami } from "lucide-react";
+import { Eye, EyeOff, Origami } from "lucide-react";
 import login from "../assets/login.jpg";
 import { UserContext } from "@/context/UserContext";
 import axiosInstance from "@/utils/axiosInstance";
@@ -14,6 +14,7 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false); 
 
   const { updateUser } = useContext(UserContext);
   const navigate = useNavigate();
@@ -89,20 +90,30 @@ const SignUp = () => {
               />
             </div>
 
-            <div>
+            {/* Password with Eye Toggle */}
+            <div className="relative">
               <label htmlFor="password" className="block text-sm font-medium text-gray-900">
                 Password
               </label>
               <input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"} // 👈 toggle type
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                className="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600 pr-10"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
+
 
             {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 

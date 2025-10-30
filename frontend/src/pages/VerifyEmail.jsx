@@ -27,8 +27,11 @@ const VerifyEmail = () => {
         setMessage(response.data.message || "Email verified successfully!");
         setStatus("success");
 
+        if(status === "success"){
+          setTimeout(() => navigate("/signin"), 20000);
+        }
         // Redirect to login after 20 seconds
-        setTimeout(() => navigate("/signin"), 20000);
+        
       } catch (error) {
         console.error(error);
         setStatus("error");

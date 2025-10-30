@@ -18,7 +18,7 @@ const Modal = ({
 
   return (
     // Modal overlay
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-all duration-300">
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-all duration-300">
       {/* Modal container */}
       <div
         className={`relative flex flex-col w-full ${maxWidth} bg-white rounded-2xl border border-gray-200 shadow-xl max-h-[85vh] m-4 sm:m-6 overflow-hidden`}

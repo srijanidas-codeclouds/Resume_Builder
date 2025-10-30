@@ -30,6 +30,8 @@ import RenderResume from "./RenderResume"
 import Modal from "./Modal"
 import ThemeSelector from "./ThemeSelector"
 import jsPDF from "jspdf"
+import { pdf } from "@react-pdf/renderer"
+import ResumePDFDocument from "./ResumePDFDocument"
 
 
 // List of tabs and their associated page keys
@@ -169,78 +171,79 @@ const EditResume = () => {
 
   // Calculate completion percentage
   const calculateCompletion = () => {
-    let completedFields = 0;
-    let totalFields = 0;
+  let completedFields = 0;
+  let totalFields = 0;
 
-    // Profile Info
-    totalFields += 3;
-    if (resumeData.profileInfo.fullName) completedFields++;
-    if (resumeData.profileInfo.designation) completedFields++;
-    if (resumeData.profileInfo.summary) completedFields++;
+  // Profile Info
+  totalFields += 3;
+  if (resumeData.profileInfo.fullName) completedFields++;
+  if (resumeData.profileInfo.designation) completedFields++;
+  if (resumeData.profileInfo.summary) completedFields++;
 
-    // Contact Info
+  // Contact Info
+  totalFields += 2;
+  if (resumeData.contactInfo.email) completedFields++;
+  if (resumeData.contactInfo.phone) completedFields++;
+
+  // Work Experience
+  resumeData.workExperience.forEach(exp => {
+    totalFields += 5;
+    if (exp.company) completedFields++;
+    if (exp.title || exp.role) completedFields++; 
+    if (exp.startDate) completedFields++;
+    if (exp.endDate) completedFields++;
+    if (exp.description) completedFields++;
+  });
+
+  // Education
+  resumeData.education.forEach(edu => {
+    totalFields += 4;
+    if (edu.degree) completedFields++;
+    if (edu.institution) completedFields++;
+    if (edu.startDate) completedFields++;
+    if (edu.endDate) completedFields++;
+  });
+
+  // Skills
+  resumeData.skills.forEach(skill => {
     totalFields += 2;
-    if (resumeData.contactInfo.email) completedFields++;
-    if (resumeData.contactInfo.phone) completedFields++;
+    if (skill.name) completedFields++;
+    if (skill.progress > 0) completedFields++;
+  });
 
-    // Work Experience
-    resumeData.workExperience.forEach(exp => {
-      totalFields += 5;
-      if (exp.company) completedFields++;
-      if (exp.role) completedFields++;
-      if (exp.startDate) completedFields++;
-      if (exp.endDate) completedFields++;
-      if (exp.description) completedFields++;
-    });
+  // Projects
+  resumeData.projects.forEach(project => {
+    totalFields += 4;
+    if (project.title) completedFields++;
+    if (project.description) completedFields++;
+    if (project.github) completedFields++;
+    if (project.liveDemo) completedFields++;
+  });
 
-    // Education
-    resumeData.education.forEach(edu => {
-      totalFields += 4;
-      if (edu.degree) completedFields++;
-      if (edu.institution) completedFields++;
-      if (edu.startDate) completedFields++;
-      if (edu.endDate) completedFields++;
-    });
+  // Certifications
+  resumeData.certifications.forEach(cert => {
+    totalFields += 3;
+    if (cert.name || cert.title) completedFields++; 
+    if (cert.issuer) completedFields++;
+    if (cert.issueDate || cert.year) completedFields++; 
+  });
 
-    // Skills
-    resumeData.skills.forEach(skill => {
-      totalFields += 2;
-      if (skill.name) completedFields++;
-      if (skill.progress > 0) completedFields++;
-    });
+  // Languages
+  resumeData.languages.forEach(lang => {
+    totalFields += 2;
+    if (lang.name) completedFields++;
+    if (lang.progress > 0) completedFields++;
+  });
 
-    // Projects
-    resumeData.projects.forEach(project => {
-      totalFields += 4;
-      if (project.title) completedFields++;
-      if (project.description) completedFields++;
-      if (project.github) completedFields++;
-      if (project.liveDemo) completedFields++;
-    });
+  // Interests
+  totalFields += resumeData.interests.length;
+  completedFields += (resumeData.interests?.filter(i => i?.name?.trim() !== "")?.length || 0);
 
-    // Certifications
-    resumeData.certifications.forEach(cert => {
-      totalFields += 3;
-      if (cert.title) completedFields++;
-      if (cert.issuer) completedFields++;
-      if (cert.year) completedFields++;
-    });
+  const percentage = Math.round((completedFields / totalFields) * 100);
+  setCompletionPercentage(percentage);
+  return percentage;
+};
 
-    // Languages
-    resumeData.languages.forEach(lang => {
-      totalFields += 2;
-      if (lang.name) completedFields++;
-      if (lang.progress > 0) completedFields++;
-    });
-
-    // Interests
-    totalFields += resumeData.interests.length;
-    completedFields += (resumeData.interests?.filter(i => i?.name?.trim() !== "")?.length || 0);
-
-    const percentage = Math.round((completedFields / totalFields) * 100);
-    setCompletionPercentage(percentage);
-    return percentage;
-  };
 
   useEffect(() => {
     calculateCompletion();
@@ -613,76 +616,25 @@ const goBack = () => {
   }
 
 const downloadPDF = async () => {
-  const element = resumeDownloadRef.current;
-  if (!element) {
-    toast.error("Failed to generate PDF. Please try again.");
-    return;
-  }
+  if (!resumeData) return toast.error("Missing resume data.");
 
   setIsDownloading(true);
-  setDownloadSuccess(false);
-  const toastId = toast.loading("Generating PDF…");
+  const toastId = toast.loading("Generating PDF...");
 
   try {
-    // Clone the node and ensure it's visible and isolated
-    const cloned = element.cloneNode(true);
-    cloned.style.transform = "none";
-    cloned.style.scale = "1";
-    cloned.style.width = "210mm";
-    cloned.style.background = "#FFFFFF";
-    cloned.style.position = "absolute";
-    cloned.style.top = "0";
-    cloned.style.left = "0";
-    cloned.style.zIndex = "-1";
-    cloned.style.opacity = "1";
-    cloned.style.display = "block";
+    const blob = await pdf(
+      <ResumePDFDocument resumeData={resumeData} />
+    ).toBlob();
 
-    // Append temporarily to the DOM to ensure proper rendering
-    document.body.appendChild(cloned);
-
-    // Convert DOM to PNG using html-to-image (force inline styles + CORS)
-    const dataUrl = await htmlToImage.toPng(cloned, {
-      backgroundColor: "#FFFFFF",
-      pixelRatio: 2,
-      cacheBust: true,
-      useCORS: true,
-      skipFonts: false,
-      style: {
-        transform: "none",
-        opacity: "1",
-        display: "block",
-      },
-    });
-
-    // Remove cloned element from DOM after conversion
-    document.body.removeChild(cloned);
-
-    // Validate image data
-    if (!dataUrl || !dataUrl.startsWith("data:image/png")) {
-      throw new Error("Invalid image data returned from html-to-image");
-    }
-
-    // Create PDF
-    const pdf = new jsPDF("p", "mm", "a4");
-    const img = new Image();
-    img.src = dataUrl;
-
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-    });
-
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (img.height * pdfWidth) / img.width;
-
-    pdf.addImage(img, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`${resumeData.title.replace(/[^a-z0-9]/gi, "_")}.pdf`);
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${resumeData.title.replace(/[^a-z0-9]/gi, "_")}.pdf`;
+    link.click();
 
     toast.success("PDF downloaded successfully!", { id: toastId });
-    setDownloadSuccess(true);
   } catch (err) {
     console.error("PDF generation failed:", err);
-    toast.error(`Failed to generate PDF: ${err.message}`, { id: toastId });
+    toast.error(`PDF generation failed: ${err.message}`, { id: toastId });
   } finally {
     setIsDownloading(false);
   }
@@ -870,7 +822,8 @@ const downloadPDF = async () => {
             isOpen={openTemplateSelector}
             onClose={() => setOpenTemplateSelector(false)}
             title="Select Template"
-            maxWidth="max-w-6xl" // wider for template previews
+            maxWidth="max-w-6xl"
+            className="z-50" // wider for template previews
           >
 
             <div className="w-full h-[70vh] overflow-y-auto overflow-x-hidden rounded-md">
@@ -908,7 +861,7 @@ const downloadPDF = async () => {
   onActionClick={downloadPDF}
   maxWidth="max-w-5xl"
 >
-  <div className="flex flex-col items-center w-full">
+  <div className="flex flex-col items-center w-full z-40">
     {/* Completion badge */}
     <div className="text-center mb-5">
       <div className="inline-flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full text-sm font-medium text-gray-700 shadow-sm">
@@ -961,6 +914,6 @@ const downloadPDF = async () => {
       </DashboardLayout>
     );
 
-  }
+}
   
-  export default EditResume
+export default EditResume
