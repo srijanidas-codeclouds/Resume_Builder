@@ -19,7 +19,7 @@ export const TemplateCard = ({ thumbnailImg, isSelected, onSelect }) => {
       onClick={onSelect}
     >
       {thumbnailImg ? (
-        <div className="w-full aspect-[3/4] relative overflow-hidden">
+        <div className="w-full aspect-[3/4] object-cover relative overflow-hidden">
           <img
             src={thumbnailImg || '/placeholder.svg'}
             alt="Template Preview"
@@ -63,7 +63,7 @@ const ThemeSelector = ({ selectedTheme, setSelectedTheme, resumeData, onClose, h
   const templatesToShow = resumeTemplates.slice(0, 2);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
       {/* Apply Button */}
       {!hideActions && (
   <div className="flex justify-end">
@@ -78,7 +78,7 @@ const ThemeSelector = ({ selectedTheme, setSelectedTheme, resumeData, onClose, h
 )}
 
       {/* Template Cards Grid */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+      {/* <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6"> */}
         <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
           {templatesToShow.map((template, index) => (
             <TemplateCard
@@ -92,7 +92,7 @@ const ThemeSelector = ({ selectedTheme, setSelectedTheme, resumeData, onClose, h
           ))}
         </div>
       </div>
-    </div>
+    // </div>
   );
 };
 
@@ -131,7 +131,7 @@ const CreateResumeForm = ({ onSuccess, selectedTemplate, setSelectedTemplate }) 
   };
 
   return (
-    <div className="w-full max-w-2xl p-8 bg-white border border-blue-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700">
+    <div className="w-full max-w-5xl p-8 bg-white border border-blue-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700">
       <h3 className="mb-4 text-xl font-medium text-gray-900 dark:text-white text-center">
         Create New Resume
       </h3>
@@ -163,13 +163,13 @@ const CreateResumeForm = ({ onSuccess, selectedTemplate, setSelectedTemplate }) 
           <Label className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
             Choose Template
           </Label>
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
+          {/* <div className="border border-gray-200 rounded-lg overflow-hidden"> */}
             <ThemeSelector
               selectedTheme={selectedTemplate}
               setSelectedTheme={setSelectedTemplate}
               hideActions={true} // hides "Apply" button inside ThemeSelector
             />
-          </div>
+          {/* </div> */}
         </div>
 
         {/* Submit */}

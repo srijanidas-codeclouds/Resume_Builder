@@ -340,7 +340,7 @@ const EditResume = () => {
     setCurrentPage(pages[nextIndex])
     const percent = Math.round((nextIndex / (pages.length - 1)) * 100)
     setProgress(percent)
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    // window.scrollTo({ top: 0, behavior: "smooth" })
   }
 }
 
@@ -358,7 +358,7 @@ const goBack = () => {
     setCurrentPage(pages[prevIndex])
     const percent = Math.round((prevIndex / (pages.length - 1)) * 100)
     setProgress(percent)
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    // window.scrollTo({ top: 0, behavior: "smooth" })
   }
 }
 
@@ -700,7 +700,7 @@ const downloadPDF = async () => {
                 onClick={() => setOpenPreviewModal(true)}
                 className="flex items-center gap-2 px-4 py-2 border border-gray-700 bg-white text-gray-800 rounded-lg hover:bg-gray-100 transition-all"
               >
-                <DownloadCloud className="w-4 h-4" /> Preview
+                <DownloadCloud className="w-4 h-4" /> Preview & Download
               </Button>
             </div>
           </div>

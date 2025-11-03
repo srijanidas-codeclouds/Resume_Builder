@@ -21,6 +21,7 @@ const Dashboard = () => {
   const [deletingResumeId, setDeletingResumeId] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState('modern');
+  // const [openTemplateSelector, setOpenTemplateSelector] = useState(false);
   const { user} = useContext(UserContext);
   
    // Calculate completion percentage for a resume
@@ -178,7 +179,7 @@ const Dashboard = () => {
                     You haven't created any resumes yet. Click the button below to create your first resume and start building your professional profile.
                 </p>
                 <button
-                    onClick={() => setOpenTemplateSelector(true)}
+                    onClick={() => setOpenCreateModal(true)}
                     className='flex gap-1 group relative rounded-lg border-2 border-sky-400 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:shadow-lg cursor-pointer'
                 >
                     <span className='absolute top-0 left-0 size-full rounded-md border border-dashed border-sky-50 shadow-inner shadow-white/30 group-active:shadow-white/10' />
@@ -237,7 +238,7 @@ const Dashboard = () => {
         onClose={() => setOpenCreateModal(false)}
         hideHeader
         maxWidth="max-w-lg"
-        className="p-6"
+        className="p-6 z-40"
       >
         <div className="mb-2">
           <div className="mt-1 relative">

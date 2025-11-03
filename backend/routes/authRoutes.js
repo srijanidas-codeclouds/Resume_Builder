@@ -2,6 +2,7 @@ import express from "express";
 import { getUserById, loginUser, logoutUser, registerUser, verification } from "../controllers/userController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { userSchema, validateUser } from "../utils/userValidate.js";
+import { sendContactMail } from "../email/contactController.js";
 const router = express.Router();
 
 // Routes
@@ -15,5 +16,6 @@ router.post("/verify", verification);
 // router.post("/reset-password/:token", resetPassword);
 // protected route as token will be required
 router.get("/profile",protect, getUserById)
+router.post("/contact",sendContactMail)
 
 export default router
