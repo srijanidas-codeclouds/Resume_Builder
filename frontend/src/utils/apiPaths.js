@@ -1,4 +1,4 @@
-export const BASE_API_URL = 'http://localhost:5000';
+export const BASE_API_URL = 'https://resume-builder-app-sew2.onrender.com';
 
 // Routes used in the application
 export const API_PATHS = {
