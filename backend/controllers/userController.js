@@ -62,58 +62,58 @@ export const registerUser = async (req, res) => {
     }
 };
 
-export const verification = async (req, res) => {
-    try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return res.status(401).json({
-                success: false,
-                message: "Authorization token is missing or invalid"
-            })
-        }
+// export const verification = async (req, res) => {
+//     try {
+//         const authHeader = req.headers.authorization;
+//         if (!authHeader || !authHeader.startsWith("Bearer ")) {
+//             return res.status(401).json({
+//                 success: false,
+//                 message: "Authorization token is missing or invalid"
+//             })
+//         }
 
-        const token = authHeader && authHeader.split(" ")[1];
+//         const token = authHeader && authHeader.split(" ")[1];
 
-        let decoded;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET)
-        } catch (err) {
-            if (err.name === "TokenExpiredError") {
-                return res.status(400).json({
-                    success: false,
-                    message: "The registration token has expired"
-                })
-            }
-            return res.status(400).json({
-                success: false,
-                message: "Token verification failed"
-            })
-        }
-        const user = await User.findById(decoded.id)
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            })
-        }
+//         let decoded;
+//         try {
+//             decoded = jwt.verify(token, process.env.JWT_SECRET)
+//         } catch (err) {
+//             if (err.name === "TokenExpiredError") {
+//                 return res.status(400).json({
+//                     success: false,
+//                     message: "The registration token has expired"
+//                 })
+//             }
+//             return res.status(400).json({
+//                 success: false,
+//                 message: "Token verification failed"
+//             })
+//         }
+//         const user = await User.findById(decoded.id)
+//         if (!user) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: "User not found"
+//             })
+//         }
 
-        user.token = null
-        user.isVerified = true
-        await user.save()
+//         user.token = null
+//         user.isVerified = true
+//         await user.save()
 
-        // await sendWelcomeEmail(user.email, user.name)
+//         // await sendWelcomeEmail(user.email, user.name)
 
-        return res.status(200).json({
-            success: true,
-            message: "Email verified successfully"
-        })
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        })
-    }
-}
+//         return res.status(200).json({
+//             success: true,
+//             message: "Email verified successfully"
+//         })
+//     } catch (error) {
+//         return res.status(500).json({
+//             success: false,
+//             message: error.message
+//         })
+//     }
+// }
 
 export const loginUser = async (req, res) => {
     try {
@@ -136,12 +136,12 @@ export const loginUser = async (req, res) => {
         }
 
         //check if user is verified 
-        if (user.isVerified !== true) {
-            return res.status(403).json({
-                success: false,
-                message: "Verify your account then login"
-            })
-        }
+        // if (user.isVerified !== true) {
+        //     return res.status(403).json({
+        //         success: false,
+        //         message: "Verify your account then login"
+        //     })
+        // }
         // check for existing session and delete it
         const existingSession = await Session.findOne({ userId: user._id });
         if (existingSession) {
