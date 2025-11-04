@@ -9,7 +9,7 @@ import SignUp from './pages/SignUp.jsx';
 import { Toaster } from 'react-hot-toast';
 import EditResume from './components/EditResume.jsx';
 import ViewTemplate from './components/ViewTemplate.jsx';
-import VerifyEmail from './pages/verifyEmail.jsx';
+import VerifyEmail from './pages/VerifyEmail.jsx';
 
 const AppRoutes = () => {
   const { user, loading } = useContext(UserContext);
