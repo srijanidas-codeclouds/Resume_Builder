@@ -17,7 +17,7 @@ export const VERIFICATION_EMAIL_TEMPLATE = (token) => `
                 please verify your email address by clicking the button below.
             </p>
             <p style="text-align: center; color:#ffffff">
-                <a href="http://localhost:5173/verify/${token}" target="_blank" style="
+                <a href="https://resume-builder-two-roan.vercel.app/verify/${token}" target="_blank" style="
       display: inline-block;
       padding: 12px 24px;
       background-color: #00a63d;
