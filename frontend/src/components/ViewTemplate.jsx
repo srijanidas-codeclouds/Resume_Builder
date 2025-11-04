@@ -5,9 +5,9 @@ import { TemplateCard } from './ThemeSelector'
 import { useNavigate } from 'react-router-dom'
 import { Button } from './ui/button'
 import { CheckIcon } from 'lucide-react'
-import Resume3 from '../assets/resume3.png'
-import Resume2 from '../assets/resume2.png'
-import Resume1 from '../assets/resume1.png'
+import Resume3 from '../assets/Resume3.png'
+import Resume2 from '../assets/Resume2.png'
+import Resume1 from '../assets/Resume1.png'
 
 const TEMPLATE_CATEGORIES = [
   "Minimalist",
