@@ -49,7 +49,7 @@ const SignUp = () => {
 
       const { token, user } = response.data;
       updateUser({ ...user, token });
-      navigate("/");
+      navigate("/signin");
     } catch (err) {
       console.error("Signup failed:", err);
       setError(
